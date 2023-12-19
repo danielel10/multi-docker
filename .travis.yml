@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t daniel/react-test -f ./client/Dockerfile.dev  ./client
+
+script:
+  - docker run daniel/react-test npm run test -- --coverage
+
+after_success:
+  - docker build -t danie/multi-client ./client
+  - docker build -t danie/multi-nginx ./nginx
+  - docker build -t danie/multi-server ./server
+  - docker build -t danie/multi-worker ./worker
+  #log in to docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #push images to docker hub
+  - docker push danie/multi-client
+  - docker push danie/multi-nginx
+  - docker push danie/multi-server
+  - docker push danie/multi-worker
